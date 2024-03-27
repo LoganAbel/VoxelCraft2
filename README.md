@@ -16,8 +16,7 @@ Controls:
 
 Features:
  - Infinite terrain Generation (until number overflow at far distances)
- - Triange meshing per chunk
- - Textures, Transparent blocks and distant fog
+ - Triange meshing per chunk with textures
  - Player Hitbox and movement in land, air
  - saving of modified chunks even when out of render distance
  - ambient occlusion
