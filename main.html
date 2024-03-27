@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>3D</title>
+	<style>
+		body {
+			margin: 0;
+		}
+		canvas {
+			display: block;
+			margin: 0 auto;
+		}
+		.text {
+			margin-top:0;
+			display: block;
+			color: white;
+			text-shadow:
+				-1px -1px 0 #000, 
+				1px -1px 0 #000, 
+				-1px 1px 0 #000, 
+				1px 1px 0 #000;
+		}
+		#debug {
+			position: absolute; 
+			margin: 5px;
+		}
+	</style>
+</head>
+<body>
+	<div id="debug">
+		<p class="text" id="fps"></p>
+		<p class="text" id="storage"></p>
+	</div>
+	<canvas></canvas>
+	<script type="text/javascript" src="fpsdisplay.js"></script>
+	<script type="text/javascript" src="webgl.js"></script>
+	<script type="text/javascript" src="webworker.js"></script>
+	<script type="text/javascript" src="chunkmanager.js"></script>
+	<script type="text/javascript" src="crosshair.js"></script>
+	<script type="text/javascript" src="texsheet.js"></script>
+	<script type="text/javascript" src="block.js"></script>
+	<script type="text/javascript" src="chunk.js"></script>
+	<script type="text/javascript" src="playercontroller.js"></script>
+	<script type="text/javascript" src="math.js"></script>
+	<script type="text/javascript" src="generation.js"></script>
+	<script type="text/javascript" src="events.js"></script>
+	<script type="text/javascript" src="camera.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+</body>
+</html>
