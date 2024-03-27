@@ -29,3 +29,4 @@ Possible Future Improvements:
  - Trees / better generation
  - Inventory / Crafting
  - Pause Menu
+ - frustum culling
