@@ -202,6 +202,15 @@ const MeshChunk = (settings, pos, data, siblings) => {
 					}
 
 					mesh1side()
+
+					let selected_block = block1_selected ? block : block2
+					let unselected_block = block1_selected ? block2 : block
+					if (normal.y == 1 
+						&& unselected_block.data.bounds?.top 
+						&& block2.id != block.id) {
+						block1_selected = !block1_selected
+						mesh1side()
+					}
 				})
 			}
 
