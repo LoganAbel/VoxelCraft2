@@ -34,8 +34,8 @@ class Events {
 
 			canvas.style.width = w + "px"
 			canvas.style.height = h + "px"
-			canvas.width = w * 2
-			canvas.height = h * 2
+			canvas.width = Math.floor(w * window.devicePixelRatio * 2)
+			canvas.height = Math.floor(h * window.devicePixelRatio * 2)
 
 			gl.viewport(0, 0, canvas.width, canvas.height);
 			Events.onresize.forEach(f => f(canvas.width, canvas.height))
@@ -85,7 +85,11 @@ class Events {
 			})
 		} else {
 			Object.values(Events.key_bindings).map(key => {
-				Events.ondown[key] = !Events.#oldisdown[key] && Events.isdown[key]
+				Events.ondown[key] = 0
+			})
+
+			Object.values(Events.key_bindings).map(key => {
+				Events.ondown[key] ||= !Events.#oldisdown[key] && Events.isdown[key]
 			})
 
 			Object.values(Events.key_bindings).map(key => {

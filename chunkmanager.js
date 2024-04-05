@@ -5,23 +5,34 @@ class ChunkManager {
 		const chunkmanager = new ChunkManager({
 			vs: await fetch_text('shader.vs'),
 			fs: await fetch_text('shader.fs'),
+			fs_trans: await fetch_text('shader-trans.fs'),
 			tex: await fetch_image('texsheet2.png')
 		})
 
+		chunkmanager.render_dist = 7
+
 		await new Promise((response, reject) => {
-			chunkmanager._update(camera, response)
+			chunkmanager._update(camera, () => {
+				//chunkmanager.render_dist = 7
+				chunkmanager.update(camera)
+				response()
+			})
 		})
 
 		return chunkmanager
 	}
 
-	constructor({vs, fs, tex}) {
-		this.render_dist = 7
-		this.program = new Program(vs, fs)
-		this.tex = new Texture(tex, gl.RGB)
+	constructor({vs, fs, fs_trans, tex}) {
+		this.program_opaque = new Program(vs, fs)
+		this.program_trans = new Program(vs, fs_trans)
+		this.tex = new Texture(tex, gl.RGBA)
 		this.texsheet = new TexSheet(this.tex, 8)
-		this.camera_uniform = this.program.uniform(gl.FLOAT_MAT4, 'u_mat')
-		this.program.uniform(gl.SAMPLER_2D, 'u_texsheet').set(0)
+		this.camera_uniforms = [
+			this.program_opaque.uniform(gl.FLOAT_MAT4, 'u_mat'),
+			this.program_trans.uniform(gl.FLOAT_MAT4, 'u_mat'),
+		]
+		this.program_opaque.uniform(gl.SAMPLER_2D, 'u_texsheet').set(0)
+		this.program_trans.uniform(gl.SAMPLER_2D, 'u_texsheet').set(0)
 
 		this.chunks = {}
 		this.modified_chunks = {}
@@ -115,8 +126,11 @@ class ChunkManager {
 					return;
 				}
 				let chunk_obj = new Chunk({data: chunk.data})
-				if (chunk.mesh)
-					chunk_obj.mesh_from_data(new Float32Array(chunk.mesh))
+				if (chunk.mesh) {
+					chunk.mesh.opaque = new Float32Array(chunk.mesh.opaque)
+					chunk.mesh.transp = new Float32Array(chunk.mesh.transp)
+					chunk_obj.mesh_from_data(chunk.mesh)
+				}
 				this.chunks[hashed_pos] = chunk_obj
 			})
 			callback()
@@ -125,13 +139,27 @@ class ChunkManager {
 
 	draw(camera) {
 		this.update(camera)
-		this.camera_uniform.set(camera.render_mat().data)
-		this.program.use()
+		this.camera_uniforms.forEach(u => u.set(camera.render_mat().data))
+		this.program_opaque.use()
 		this.tex.bind(0)
+		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
+
+		gl.enable(gl.CULL_FACE);
 		Object.values(this.chunks).forEach(chunk => 
-			chunk.mesh != undefined && chunk.mesh !== true && chunk.mesh.draw()
+			chunk.mesh?.opaque && chunk.mesh?.opaque.size > 0 && chunk.mesh.opaque.draw()
 		)
+  		gl.disable(gl.CULL_FACE);
+  		gl.depthMask(false);
+
+  		this.program_trans.use()
+  		gl.enable(gl.BLEND)
+  		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE);
+		Object.values(this.chunks).forEach(chunk => 
+			chunk.mesh?.transp && chunk.mesh?.transp.size > 0 && chunk.mesh.transp.draw()
+		)
+		gl.disable(gl.BLEND)
+
 		gl.disable(gl.DEPTH_TEST);
 	}
 
@@ -139,7 +167,7 @@ class ChunkManager {
 		let lastp = null;
 		for(let [p, ts] of ray.dda(dist)) {
 			const block = this.getp(p)
-			if (block.data.is_block)
+			if (block.data.is_solid)
 				return {p, block, lastp, t: Math.min(ts.x, ts.y, ts.z)}
 			lastp = p.copy()
 		}
@@ -148,8 +176,7 @@ class ChunkManager {
 	getp(p) {
 		const loc = p.scale(1/16).floor().scale(16)
 		const chunk = this.chunks[loc.data]
-		if (chunk?.mesh == undefined) return new Block(Block.Air)
-		// returning undefined somtimes?
+		if (chunk?.mesh == undefined || chunk?.data?.length == 0) return null
 		return chunk.get(p.sub(loc))
 	}
 
@@ -160,18 +187,15 @@ class ChunkManager {
 		let chunkp = p.sub(loc)
 		chunk.set(chunkp, v)
 		let locs = [loc]
-		if(chunkp.x == 0)
-			locs.push(loc.add(new Vec3(-16,0,0)))
-		if(chunkp.y == 0)
-			locs.push(loc.add(new Vec3(0,-16,0)))
-		if(chunkp.z == 0)
-			locs.push(loc.add(new Vec3(0,0,-16)))
-		if(chunkp.x == 15)
-			locs.push(loc.add(new Vec3(16,0,0)))
-		if(chunkp.y == 15)
-			locs.push(loc.add(new Vec3(0,16,0)))
-		if(chunkp.z == 15)
-			locs.push(loc.add(new Vec3(0,0,16)))
+		SiblingPoses.forEach(dir => {
+			if(dir.x == -1 && chunkp.x != 0) return;
+			if(dir.x == 1 && chunkp.x != 15) return;
+			if(dir.y == -1 && chunkp.y != 0) return;
+			if(dir.y == 1 && chunkp.y != 15) return;
+			if(dir.z == -1 && chunkp.z != 0) return;
+			if(dir.z == 1 && chunkp.z != 15) return;
+			locs.push(loc.add(dir.scale(16)))
+		})
 		this.regen_chunks(locs)
 	}
 
@@ -188,7 +212,10 @@ class ChunkManager {
 				return this.chunks[new_pos.data].data
 			})
 
-			this.chunks[loc.data].mesh_from_data(new Float32Array(MeshChunk(settings, loc, this.chunks[loc.data].data, siblings)))
+			const mesh = MeshChunk(settings, loc, this.chunks[loc.data].data, siblings)
+			mesh.opaque = new Float32Array(mesh.opaque)
+			mesh.transp = new Float32Array(mesh.transp)
+			this.chunks[loc.data].mesh_from_data(mesh)
 		})
 	}
 }

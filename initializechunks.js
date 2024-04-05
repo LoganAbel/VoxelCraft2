@@ -1,7 +1,6 @@
-importScripts('block.js')
-importScripts('math.js')
-importScripts('generation.js')
-importScripts('texsheet.js')
+let window = {}
+
+importScripts('block.js', 'math.js', 'simplex-lib.js', 'generation.js', 'texsheet.js')
 
 onmessage = e => {
 	// todo: make more efficient?
@@ -14,11 +13,16 @@ onmessage = e => {
 
 	let reses = {}
 	let transferables = []
+
 	Object.entries(chunks).forEach(([hashed_pos, chunk]) => {
 		const res = reses[hashed_pos] = {}
 
 		const pos = new Vec3(...hashed_pos.split(',').map(v=>+v)) // probably should use another method of finding pos
-		chunk ??= GenerateChunk(pos).buffer
+		if (chunk == undefined) {
+			chunk = new Uint16Array(16*16*16).fill(Block.Air)
+			GenerateChunk(chunk, pos)
+			chunk = chunk.buffer
+		}
 		res.data = chunk
 		chunks[hashed_pos] = chunk
 		transferables.push(chunk)
@@ -40,8 +44,10 @@ onmessage = e => {
 		chunk = new Uint16Array(chunk)
 
 		const mesh = MeshChunk(settings, pos, chunk, siblings)
-		res.mesh = new Float32Array(mesh).buffer
-		transferables.push(res.mesh)
+		mesh.transp = new Float32Array(mesh.transp).buffer
+		mesh.opaque = new Float32Array(mesh.opaque).buffer
+		res.mesh = mesh
+		transferables.push(res.mesh.transp, res.mesh.opaque)
 	})
 
 	//console.log(Object.keys(chunks).length + " new chunks in " + (performance.now()-start_t) + ' ms')

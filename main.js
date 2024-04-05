@@ -18,7 +18,6 @@ let main = async () => {
 		player.Update(Events, chunkmanager)
 
 		gl.clearColor(148/255, 196/255, 255/255, 1)
-		//gl.clearColor(79/255, 95/255, 118/255, 1)
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		chunkmanager.draw(player.camera)
 		crosshair.draw()

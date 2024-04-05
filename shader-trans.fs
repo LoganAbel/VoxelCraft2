@@ -10,6 +10,5 @@ uniform sampler2D u_texsheet;
 
 void main() {
 	vec4 tex = texture(u_texsheet, v_uv);
-	if (tex.a < .5) discard;
 	fragColor = vec4(tex.rgb * v_ao, tex.a);
 }

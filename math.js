@@ -133,6 +133,14 @@ class Vec3 {
 		)
 	}
 
+	mod(n) {
+		return new Vec3(
+			(this.x % n + n) % n,
+			(this.y % n + n) % n,
+			(this.z % n + n) % n
+		)
+	}
+
 	sign() {
 		return new Vec3(
 			this.x == 0 ? 0 : this.x < 0 ? -1 : 1,

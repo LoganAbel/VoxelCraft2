@@ -5,18 +5,16 @@ class Chunk {
 		[gl.FLOAT, 1]
 	]
 
-	constructor({data, mesh}) {
+	constructor({data}) {
 		this.data = data
-		this.mesh = mesh
 	}
 
 	mesh_from_data(mesh) {
-		if (mesh.length == 0) {
-			this.mesh = true;
-			return;
-		}
-		this.mesh = new VertexBuffer(mesh, Chunk.vertex_format)
-		this.mesh.attach_ebo(QuadIndices(this.mesh.length))
+		this.mesh = {}
+		this.mesh.transp = new VertexBuffer(mesh.transp, Chunk.vertex_format)
+		this.mesh.transp.attach_ebo(QuadIndices(this.mesh.transp.length))
+		this.mesh.opaque = new VertexBuffer(mesh.opaque, Chunk.vertex_format)
+		this.mesh.opaque.attach_ebo(QuadIndices(this.mesh.opaque.length))
 	}
 
 	safe_get(siblings, p) { 
