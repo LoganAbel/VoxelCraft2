@@ -17,16 +17,14 @@ Controls:
 Features:
  - Infinite terrain Generation (until number overflow at far distances)
  - Triange meshing per chunk with textures
- - Player Hitbox and movement in land, air
+ - Player Hitbox with movement in land, air, and water
  - saving of modified chunks even when out of render distance
  - ambient occlusion
 
 Possible Future Improvements:
- - water / transparent blocks
- - Increasing darkness in enclosed areas
- - Shadows
- - more blocks
- - Trees / better generation
+ - Increasing darkness in enclosed areas (light levels)
+ - Direct shadows
+ - Biomes
  - Inventory / Crafting
  - Pause Menu
  - frustum culling
