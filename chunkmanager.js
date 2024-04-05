@@ -12,11 +12,7 @@ class ChunkManager {
 		chunkmanager.render_dist = 7
 
 		await new Promise((response, reject) => {
-			chunkmanager._update(camera, () => {
-				//chunkmanager.render_dist = 7
-				chunkmanager.update(camera)
-				response()
-			})
+			chunkmanager._update(camera, response)
 		})
 
 		return chunkmanager
@@ -49,19 +45,20 @@ class ChunkManager {
 		const center_pos = camera.pos.scale(1/16).floor().scale(16)
 		if(this.oldcenterpos && center_pos.eq(this.oldcenterpos)) return;
 
+		if (this.updating) {
+			this.update_waiting = true
+			return;
+		}
+
+		this.updating = true
+
 		const update = () => {
-			if (this.updating) {
-				this.update_waiting = true
-				return;
-			}
-
-			this.updating = true
-
 			this._update(camera, () => {
-				this.updating = false
 				if (this.update_waiting) {
 					this.update_waiting = false
 					update()
+				} else {
+					this.updating = false
 				}
 			})
 		}
@@ -71,7 +68,10 @@ class ChunkManager {
 
 	_update(camera, callback) {
 		const center_pos = camera.pos.scale(1/16).floor().scale(16)
-		if(this.oldcenterpos && center_pos.eq(this.oldcenterpos)) return;
+		if(this.oldcenterpos && center_pos.eq(this.oldcenterpos)) {
+			callback();
+			return;
+		}
 
 		this.oldcenterpos = center_pos
 		let start = center_pos.sub(new Vec3(this.render_dist*16))
