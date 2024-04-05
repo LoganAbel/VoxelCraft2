@@ -63,7 +63,7 @@ const generate_tree = (p, get, set, safe_set) => {
 
 	if (p.y <= water_height) return;
 	const r = Random( (p.x << 16) + p.z + tree_seed )()
-	const tree_odds = .99 // .95
+	const tree_odds = .98
 	if (r < tree_odds) return;
 
 	for(let [dx,dz] of donut()) {
