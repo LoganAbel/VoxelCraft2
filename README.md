@@ -1,6 +1,6 @@
 VoxelCraft2
 
-<img width="473" alt="image" src="https://github.com/LoganAbel/VoxelCraft2/assets/106107469/62e35f9f-ca9d-45c0-b951-fd3f2b8d03fb">
+<img width="524" alt="image" src="https://github.com/LoganAbel/VoxelCraft2/assets/106107469/15c87837-b2b6-4149-8e80-4d04c87aa117">
 
 to run online click [here](https://loganabel.github.io/VoxelCraft2/main.html)
 
